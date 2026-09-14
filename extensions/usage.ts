@@ -218,12 +218,10 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			const result = await fetcher(ctx);
-			if (ctx.hasUI) {
-				const title = provider === "neuralwatt" ? "neuralwatt 사용량" : "codex 사용량";
-				await ctx.ui.select(title, result.ok ? result.lines : [result.error ?? "조회 실패"]);
-			} else {
-				ctx.ui.notify(result.ok ? result.lines.join("\n") : (result.error ?? "조회 실패"), result.ok ? "info" : "error");
-			}
+			ctx.ui.notify(
+				result.ok ? result.lines.join("\n") : (result.error ?? "조회 실패"),
+				result.ok ? "info" : "error",
+			);
 		},
 	});
 }
