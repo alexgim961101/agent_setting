@@ -10,6 +10,12 @@ function singleLine(text: string): string {
 	return text.replace(/[\r\n\t]+/g, " ").trim();
 }
 
+function formatTokens(n: number): string {
+	if (n < 1000) return `${n}`;
+	if (n < 1_000_000) return `${(n / 1000).toFixed(1)}k`;
+	return `${(n / 1_000_000).toFixed(2)}M`;
+}
+
 function alignRow(left: string, right: string, width: number): string {
 	const rightWidth = visibleWidth(right);
 	if (width <= rightWidth + 2) return truncateToWidth(right, width);
@@ -47,9 +53,26 @@ export default function (pi: ExtensionAPI) {
 					const contextLabel = percent == null ? "컨텍스트 ?" : `컨텍스트 ${percent.toFixed(0)}%`;
 					const contextColor = percent != null && percent > CONTEXT_CRITICAL_PERCENT ? "error"
 						: percent != null && percent > CONTEXT_WARNING_PERCENT ? "warning" : "muted";
+					const usageParts: string[] = [];
+					let input = 0;
+					let output = 0;
+					let cost = 0;
+					for (const entry of ctx.sessionManager.getBranch()) {
+						if (entry.type === "message" && entry.message.role === "assistant") {
+							const usage = (entry.message as { usage: { input: number; output: number; cost: { total: number } } }).usage;
+							input += usage.input;
+							output += usage.output;
+							cost += usage.cost.total;
+						}
+					}
+					if (input > 0) usageParts.push(`↑${formatTokens(input)}`);
+					if (output > 0) usageParts.push(`↓${formatTokens(output)}`);
+					if (cost > 0) usageParts.push(`$${cost.toFixed(3)}`);
+					const rightLabel =
+						theme.fg("muted", usageParts.length > 0 ? `${usageParts.join(" ")} · ` : "") + theme.fg(contextColor, contextLabel);
 					const lines = [
 						truncateToWidth(location + branchLabel, width),
-						alignRow(theme.fg("muted", singleLine(modelLabel + thinking)), theme.fg(contextColor, contextLabel), width),
+						alignRow(theme.fg("muted", singleLine(modelLabel + thinking)), rightLabel, width),
 					];
 
 					// 뉴럴와트 등 다른 확장이 제공하는 상태를 함께 표시한다.
