@@ -6,7 +6,8 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 
 | 파일 | 용도 | 적용 위치 |
 | --- | --- | --- |
-| [AGENTS.md](AGENTS.md) | 기술 스택에 독립적인 공통 작업 지침 | `~/.pi/agent/AGENTS.md` |
+| [global/AGENTS.md](global/AGENTS.md) | 기술 스택에 독립적인 공통 작업 지침 | `~/.pi/agent/AGENTS.md` |
+| [AGENTS.md](AGENTS.md) | 이 저장소에서 작업할 때 적용되는 프로젝트 전용 지침 | 전역에 복사하지 않음 |
 | [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 
@@ -129,14 +130,14 @@ pi remove ~/src/pi_setting
 
 ```bash
 mkdir -p ~/.pi/agent
-cp AGENTS.md ~/.pi/agent/AGENTS.md
+cp global/AGENTS.md ~/.pi/agent/AGENTS.md
 ```
 
 Pi를 다시 실행하면 적용됩니다. Pi는 전역 지침을 프로젝트의 `AGENTS.md`와 함께 읽습니다. 같은 디렉터리에 `AGENTS.override.md`가 있으면 해당 디렉터리에서는 그 파일이 우선하며, `--no-context-files` 옵션을 사용하면 지침 파일을 읽지 않습니다.
 
 ## 지침 수정
 
-이 저장소의 `AGENTS.md`를 수정하고 위 적용 명령을 다시 실행합니다. 파일을 복사하는 방식이므로 저장소를 수정하거나 `git pull`만 실행해도 전역 파일이 자동으로 바뀌지는 않습니다.
+이 저장소의 `global/AGENTS.md`를 수정하고 위 적용 명령을 다시 실행합니다. 파일을 복사하는 방식이므로 저장소를 수정하거나 `git pull`만 실행해도 전역 파일이 자동으로 바뀌지는 않습니다.
 
 API 키가 들어 있는 `~/.pi/agent/auth.json`과 세션 기록은 이 저장소에서 관리하지 않습니다.
 
