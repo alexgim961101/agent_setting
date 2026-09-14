@@ -16,6 +16,14 @@ function formatTokens(n: number): string {
 	return `${(n / 1_000_000).toFixed(2)}M`;
 }
 
+function formatDuration(startMs: number, nowMs: number): string {
+	const minutes = Math.floor((nowMs - startMs) / 60_000);
+	if (minutes < 1) return "<1m";
+	if (minutes < 60) return `${minutes}m`;
+	const hours = Math.floor(minutes / 60);
+	return `${hours}h ${minutes % 60}m`;
+}
+
 function alignRow(left: string, right: string, width: number): string {
 	const rightWidth = visibleWidth(right);
 	if (width <= rightWidth + 2) return truncateToWidth(right, width);
@@ -26,6 +34,7 @@ function alignRow(left: string, right: string, width: number): string {
 
 export default function (pi: ExtensionAPI) {
 	let enabled = true;
+	let sessionStartedAt: number | undefined;
 
 	function apply(ctx: ExtensionContext) {
 		if (ctx.mode !== "tui") return;
@@ -53,26 +62,38 @@ export default function (pi: ExtensionAPI) {
 					const contextLabel = percent == null ? "컨텍스트 ?" : `컨텍스트 ${percent.toFixed(0)}%`;
 					const contextColor = percent != null && percent > CONTEXT_CRITICAL_PERCENT ? "error"
 						: percent != null && percent > CONTEXT_WARNING_PERCENT ? "warning" : "muted";
-					const usageParts: string[] = [];
 					let input = 0;
 					let output = 0;
+					let cacheRead = 0;
+					let cacheWrite = 0;
 					let cost = 0;
 					for (const entry of ctx.sessionManager.getBranch()) {
 						if (entry.type === "message" && entry.message.role === "assistant") {
-							const usage = (entry.message as { usage: { input: number; output: number; cost: { total: number } } }).usage;
+							const usage = (entry.message as {
+								usage: { input: number; output: number; cacheRead: number; cacheWrite: number; cost: { total: number } };
+							}).usage;
 							input += usage.input;
 							output += usage.output;
+							cacheRead += usage.cacheRead;
+							cacheWrite += usage.cacheWrite;
 							cost += usage.cost.total;
 						}
 					}
+
+					const leftParts = [singleLine(modelLabel + thinking)];
+					if (sessionStartedAt != null) leftParts.push(formatDuration(sessionStartedAt, Date.now()));
+					const leftLabel = theme.fg("muted", leftParts.join(" · "));
+
+					const usageParts: string[] = [];
 					if (input > 0) usageParts.push(`↑${formatTokens(input)}`);
 					if (output > 0) usageParts.push(`↓${formatTokens(output)}`);
+					if (cacheRead > 0 || cacheWrite > 0) usageParts.push(`cache ${formatTokens(cacheRead + cacheWrite)}`);
 					if (cost > 0) usageParts.push(`$${cost.toFixed(3)}`);
 					const rightLabel =
 						theme.fg("muted", usageParts.length > 0 ? `${usageParts.join(" ")} · ` : "") + theme.fg(contextColor, contextLabel);
 					const lines = [
 						truncateToWidth(location + branchLabel, width),
-						alignRow(theme.fg("muted", singleLine(modelLabel + thinking)), rightLabel, width),
+						alignRow(leftLabel, rightLabel, width),
 					];
 
 					// 뉴럴와트 등 다른 확장이 제공하는 상태를 함께 표시한다.
@@ -93,7 +114,10 @@ export default function (pi: ExtensionAPI) {
 		ctx.ui.notify(enabled ? "간결한 상태 표시줄" : "기본 상태 표시줄", "info");
 	}
 
-	pi.on("session_start", (_event, ctx) => apply(ctx));
+	pi.on("session_start", (_event, ctx) => {
+		sessionStartedAt = Date.now();
+		apply(ctx);
+	});
 	pi.on("session_shutdown", (_event, ctx) => {
 		if (ctx.mode === "tui" && enabled) ctx.ui.setFooter(undefined);
 	});
