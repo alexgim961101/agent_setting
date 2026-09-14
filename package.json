@@ -8,7 +8,7 @@
     "@earendil-works/pi-tui": "*"
   },
   "pi": {
-    "extensions": ["./extensions/compact-ui.ts"],
+    "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts"],
     "themes": ["./themes/alex-light.json"]
   }
 }

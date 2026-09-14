@@ -9,6 +9,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [global/AGENTS.md](global/AGENTS.md) | 기술 스택에 독립적인 공통 작업 지침 | `~/.pi/agent/AGENTS.md` |
 | [AGENTS.md](AGENTS.md) | 이 저장소에서 작업할 때 적용되는 프로젝트 전용 지침 | 전역에 복사하지 않음 |
 | [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
+| [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 
 공통 지침에는 한국어 응답, 목표와 근거 확인, 승인 범위 안에서의 실행, 변경 범위 관리, 검증과 결과 보고 원칙이 포함되어 있습니다.
@@ -113,6 +114,14 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 | `/reload` | 저장소에서 수정한 확장 다시 불러오기 |
 
 표시줄 전환은 현재 Pi 실행 동안 유지되며, 다시 실행하거나 `/reload`하면 간결한 표시줄로 시작합니다. 단축키가 터미널에서 전달되지 않으면 `/ui`를 사용합니다. 기존 Pi 단축키는 변경하지 않습니다.
+
+### 사용량 확인 (`/usage`)
+
+현재 선택된 모델의 provider에 따라 사용량을 조회합니다.
+
+- `neuralwatt`: 잔여 크레딧, 이번 달 사용량(비용·요청·토큰), 키 한도, 구독 정보를 표시합니다.
+- `openai-codex`: 플랜, 주/보조 rate limit 윈도우의 남은 비율과 리셋 시각, 크레딧을 표시합니다. Codex OAuth 로그인이 필요하며, 이 엔드포인트는 codex CLI 내부용이라 응답 형식이 예고 없이 바뀔 수 있습니다.
+- 그 외 provider는 지원하지 않습니다.
 
 컨텍스트 수치를 알 수 없는 경우에는 `?`로 표시합니다. 뉴럴와트 등 다른 확장의 상태 문구가 제공되면 그대로 표시하며, 이 확장이 별도의 API 조회를 하지는 않습니다.
 
