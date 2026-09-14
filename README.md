@@ -11,6 +11,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
+| [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
 
 공통 지침에는 한국어 응답, 목표와 근거 확인, 승인 범위 안에서의 실행, 변경 범위 관리, 검증과 결과 보고 원칙이 포함되어 있습니다.
 
@@ -98,7 +99,7 @@ pi list
 pi install ~/src/pi_setting
 ```
 
-Pi를 다시 실행하고 `/settings`에서 테마를 `alex-light`로 선택합니다. 테마는 밝은 터미널 배경을 기준으로 만들었습니다.
+Pi를 다시 실행하고 `/settings`에서 테마를 선택합니다. 밝은 터미널 배경에는 `alex-light`, 어두운 터미널 배경에는 `alex-dark`가 어울립니다.
 
 상태 표시줄은 기본 2줄로 표시하고, 다른 확장이 제공하는 상태가 있으면 아래에 추가합니다. 두 번째 줄에는 세션 경과 시간과 입력·출력 토큰, 캐시 토큰, 누적 비용도 표시합니다. 캐시는 provider가 캐시 사용량을 보고하는 경우에만, 비용은 가격 정보를 제공하는 경우에만 나타납니다.
 

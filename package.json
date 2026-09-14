@@ -9,6 +9,6 @@
   },
   "pi": {
     "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts"],
-    "themes": ["./themes/alex-light.json"]
+    "themes": ["./themes/alex-light.json", "./themes/alex-dark.json"]
   }
 }
