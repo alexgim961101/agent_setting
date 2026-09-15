@@ -1,0 +1,31 @@
+{
+  "provider": "tavily",
+  "tavilyApiKey": "$TAVILY_API_KEY",
+  "searchRouting": {
+    "providers": ["tavily"],
+    "fallbackOn": []
+  },
+  "fetchRouting": {
+    "providers": ["http", "jina", "firecrawl"],
+    "allowRemoteHostedProviders": false
+  },
+  "fetch": {
+    "timeout": 30,
+    "defaultMode": "readable"
+  },
+  "webSearch": {
+    "enabled": true,
+    "allowedProviders": ["tavily"]
+  },
+  "githubClone": { "enabled": true },
+  "githubPrIssue": { "enabled": true },
+  "youtube": { "enabled": true },
+  "video": { "enabled": true },
+  "pdf": { "provider": "unpdf" },
+  "workflow": "auto-summary",
+  "curatorTimeoutSeconds": 20,
+  "searchModel": "gemini-3.6-flash",
+  "summaryModel": "openai-codex/gpt-5.6-terra",
+  "allowBrowserCookies": false,
+  "autoOpenBrowser": false
+}

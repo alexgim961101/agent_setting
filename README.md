@@ -12,6 +12,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
+| [config/web-search.json](config/web-search.json) | `pi-web-access` 검색·본문 추출 설정 | `~/.pi/agent/web-search.json` |
 
 공통 지침에는 한국어 응답, 목표와 근거 확인, 승인 범위 안에서의 실행, 변경 범위 관리, 검증과 결과 보고 원칙이 포함되어 있습니다.
 
@@ -24,6 +25,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | Node.js | `v24.12.0`, nvm 기본값 `24` |
 | Pi coding agent | `0.85.1` |
 | 뉴럴와트 확장 | `@aliou/pi-neuralwatt` `0.15.3` |
+| 웹 검색 확장 | `pi-web-access` `0.29.0` |
 
 ## Node.js와 Pi 설치
 
@@ -133,6 +135,60 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 ```bash
 pi remove ~/src/pi_setting
 ```
+
+## 웹 검색: pi-web-access와 Tavily
+
+Pi 코어에는 웹 검색 도구가 없으므로 `pi-web-access` 확장으로 검색·본문 추출·GitHub 클론·PDF 추출을 추가합니다. 검색 제공자는 Tavily를 사용합니다. Tavily는 카드 등록 없이 월 1,000 크레딧을 무료로 제공하며, 초과분은 $0.008/회입니다.
+
+### 설치
+
+```bash
+pi install npm:pi-web-access
+mkdir -p ~/.pi/agent
+cp config/web-search.json ~/.pi/agent/web-search.json
+```
+
+### API 키 등록
+
+[Tavily](https://www.tavily.com)에서 발급한 키를 셸 프로필에 환경 변수로 등록합니다. 키를 설정 파일에 직접 쓰지 않기 위한 방식입니다.
+
+```bash
+export TAVILY_API_KEY="tvly-발급받은키"
+```
+
+셸을 다시 열고 Pi를 재시작합니다. 환경 변수는 `/reload`로는 반영되지 않습니다.
+
+```bash
+echo $TAVILY_API_KEY   # 값이 보이면 정상
+```
+
+### 설정 내용
+
+`config/web-search.json`은 Tavily만 사용하도록 고정하고, 자동 폴백에서 다른 제공자(Exa, OpenAI 등)로 넘어가는 경로를 막습니다. 검색과 본문 추출을 분리해 페이지를 읽을 때 검색 API를 다시 호출하지 않습니다.
+
+| 설정 | 값 | 이유 |
+| --- | --- | --- |
+| `provider` | `tavily` | 검색 제공자 고정 |
+| `webSearch.allowedProviders` | `["tavily"]` | 허용 목록 밖 제공자 차단 |
+| `searchRouting.fallbackOn` | `[]` | 실패 시 임의 제공자로 전환하지 않음 |
+| `fetchRouting.providers` | `http` → `jina` → `firecrawl` | 알려진 URL 본문은 직접 읽기 |
+| `workflow` | `auto-summary` | 검토용 브라우저 창 없이 요약만 수신 |
+| `pdf.provider` | `unpdf` | PDF를 로컬에서 추출 |
+| `allowBrowserCookies` | `false` | 브라우저 쿠키 접근 차단 |
+| `autoOpenBrowser` | `false` | 브라우저 창 자동 실행 차단 |
+
+`tavilyApiKey`는 `$TAVILY_API_KEY` 참조를 사용하므로 설정 파일을 공유해도 키가 노출되지 않습니다. `summaryModel`은 설치된 모델 목록에서 `gpt-5.6-terra`를 지정했으며, `/model` 목록이 바뀌면 함께 조정합니다.
+
+### 사용
+
+| 도구 | 용도 |
+| --- | --- |
+| `web_search` | Tavily로 검색하고 출처가 붙은 답변을 받음 |
+| `fetch_content` | URL 본문을 Markdown으로 읽거나 GitHub 저장소를 클론 |
+| `get_search_content` | 이전 검색·조회 결과를 캐시에서 다시 읽음 |
+| `source_check` | 주장에 대한 근거 문장을 수집 |
+
+자주 쓰는 명령은 `/websearch`, `/curator`, `/search`입니다.
 
 ## 전역 지침 적용
 
