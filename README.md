@@ -13,6 +13,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
 | [config/web-search.json](config/web-search.json) | `pi-web-access` 검색·본문 추출 설정 | `~/.pi/agent/web-search.json` |
+| [mcp/mcp.json](mcp/mcp.json) | Atlassian Rovo MCP 서버 설정 | `~/.config/mcp/mcp.json` |
 
 공통 지침에는 한국어 응답, 목표와 근거 확인, 승인 범위 안에서의 실행, 변경 범위 관리, 검증과 결과 보고 원칙이 포함되어 있습니다.
 
@@ -25,6 +26,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | Node.js | `v24.12.0`, nvm 기본값 `24` |
 | Pi coding agent | `0.85.1` |
 | 뉴럴와트 확장 | `@aliou/pi-neuralwatt` `0.15.3` |
+| MCP 어댑터 | `pi-mcp-adapter` `2.34.0` |
 | 웹 검색 확장 | `pi-web-access` `0.29.0` |
 
 ## Node.js와 Pi 설치
@@ -135,6 +137,20 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 ```bash
 pi remove ~/src/pi_setting
 ```
+
+## MCP: Atlassian Rovo
+
+Pi 코어에는 MCP가 포함되어 있지 않으므로 `pi-mcp-adapter` 패키지로 MCP 클라이언트를 추가합니다. Atlassian은 원격 MCP 서버 `https://mcp.atlassian.com/v2/mcp`와 OAuth 2.1 인증을 공식 제공합니다([공식 가이드](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/)).
+
+```bash
+pi install npm:pi-mcp-adapter
+mkdir -p ~/.config/mcp
+cp mcp/mcp.json ~/.config/mcp/mcp.json
+```
+
+Pi를 다시 실행한 뒤 `/mcp-auth atlassian`을 입력하면 브라우저에서 Atlassian 계정으로 로그인합니다. 연결 확인은 `/mcp` 패널이나 `mcp({ search: "jira" })` 호출로 합니다.
+
+MCP 호출은 조직의 Rovo 크레딧을 소비하고 로그인한 계정의 Jira·Confluence 등 권한으로 동작하므로, 조직 환경에서는 admin 승인이 필요할 수 있습니다. `pi-mcp-adapter`는 서버를 기본 lazy로 연결하고 하나의 프록시 도구로 노출해 컨텍스트 소비를 줄입니다.
 
 ## 웹 검색: pi-web-access와 Tavily
 
