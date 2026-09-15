@@ -13,13 +13,13 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
 | [config/web-search.json](config/web-search.json) | `pi-web-access` 검색·본문 추출 설정 | `~/.pi/agent/web-search.json` |
-| [mcp/mcp.json](mcp/mcp.json) | Atlassian Rovo MCP 서버 설정 | `~/.config/mcp/mcp.json` |
+| [mcp/mcp.json](mcp/mcp.json) | Chrome DevTools·Atlassian Rovo MCP 서버 설정 | `~/.config/mcp/mcp.json` |
 
 공통 지침에는 한국어 응답, 목표와 근거 확인, 승인 범위 안에서의 실행, 변경 범위 관리, 검증과 결과 보고 원칙이 포함되어 있습니다.
 
 ## 설치 환경
 
-2026-09-14 로컬에서 확인한 버전입니다. 아래 설치 명령은 버전을 고정하지 않으므로 나중에 실행하면 세부 버전이 달라질 수 있습니다.
+2026-09-14 로컬에서 확인한 버전입니다. 아래 설치 명령은 Chrome DevTools MCP를 제외하면 버전을 고정하지 않으므로 나중에 실행하면 세부 버전이 달라질 수 있습니다. 브라우저 연결을 검증한 환경은 아래 Chrome DevTools MCP 절에 별도로 기록합니다.
 
 | 항목 | 확인한 설정 |
 | --- | --- |
@@ -138,9 +138,11 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 pi remove ~/src/pi_setting
 ```
 
-## MCP: Atlassian Rovo
+## MCP 공통 설정
 
-Pi 코어에는 MCP가 포함되어 있지 않으므로 `pi-mcp-adapter` 패키지로 MCP 클라이언트를 추가합니다. Atlassian은 원격 MCP 서버 `https://mcp.atlassian.com/v2/mcp`와 OAuth 2.1 인증을 공식 제공합니다([공식 가이드](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/)).
+Pi 코어에는 MCP가 포함되어 있지 않으므로 `pi-mcp-adapter` 패키지로 MCP 클라이언트를 추가합니다. `mcp/mcp.json`은 Chrome DevTools와 Atlassian Rovo 두 서버를 등록합니다. 서버는 lazy 방식으로 필요할 때만 시작하므로 Chrome DevTools 패키지를 아직 설치하지 않았더라도 Atlassian만 사용할 수 있습니다.
+
+저장소 루트에서 실행합니다. 기존 `~/.config/mcp/mcp.json`에 별도로 추가한 서버나 설정이 있다면 차이를 확인하고 병합하세요. 아래 `cp`는 기존 파일을 덮어씁니다.
 
 ```bash
 pi install npm:pi-mcp-adapter
@@ -148,9 +150,107 @@ mkdir -p ~/.config/mcp
 cp mcp/mcp.json ~/.config/mcp/mcp.json
 ```
 
-Pi를 다시 실행한 뒤 `/mcp-auth atlassian`을 입력하면 브라우저에서 Atlassian 계정으로 로그인합니다. 연결 확인은 `/mcp` 패널이나 `mcp({ search: "jira" })` 호출로 합니다.
+어댑터를 처음 설치했다면 Pi를 다시 실행합니다. 이후 MCP 설정 파일만 변경했다면 Pi에서 `/reload`를 실행합니다. `mcp({ ... })` 예시는 에이전트의 도구 호출이며 셸 명령이 아닙니다.
+
+### Atlassian Rovo
+
+Atlassian은 원격 MCP 서버 `https://mcp.atlassian.com/v2/mcp`와 OAuth 2.1 인증을 공식 제공합니다([공식 가이드](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/)).
+
+Pi에서 `/mcp-auth atlassian`을 입력하면 브라우저에서 Atlassian 계정으로 로그인합니다. 연결 확인은 `/mcp` 패널이나 `mcp({ search: "jira" })` 호출로 합니다.
 
 MCP 호출은 조직의 Rovo 크레딧을 소비하고 로그인한 계정의 Jira·Confluence 등 권한으로 동작하므로, 조직 환경에서는 admin 승인이 필요할 수 있습니다. `pi-mcp-adapter`는 서버를 기본 lazy로 연결하고 하나의 프록시 도구로 노출해 컨텍스트 소비를 줄입니다.
+
+## 브라우저: Chrome DevTools MCP
+
+현재는 Chrome만 지원 대상으로 삼습니다. Google의 [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)로 기존 Chrome의 로그인된 탭에 연결해 스크린샷, DOM·접근성 스냅샷, 클릭·입력, 콘솔·네트워크 진단을 수행합니다. OS 데스크톱 캡처가 아니라 브라우저 자체의 캡처 기능을 사용합니다.
+
+### 설치와 설정
+
+Node.js 24가 활성화된 셸에서 검증한 버전을 설치합니다. MCP 어댑터 설치와 설정 파일 복사는 위 공통 설정을 따릅니다.
+
+```bash
+npm install -g --ignore-scripts chrome-devtools-mcp@1.9.0
+command -v chrome-devtools-mcp
+chrome-devtools-mcp --version
+```
+
+설정의 `command`는 `chrome-devtools-mcp`입니다. 개인 홈 디렉터리나 nvm 버전의 절대 경로를 저장소에 넣지 않습니다. Pi를 실행한 환경의 `PATH`에서 이 명령을 찾을 수 있어야 하며, nvm으로 Node.js 버전을 바꾸면 해당 버전에 다시 설치해야 할 수 있습니다. 셸의 PATH를 바꿨다면 Pi도 그 셸에서 다시 시작합니다.
+
+| 설정 | 목적 |
+| --- | --- |
+| `--autoConnect` | 새 브라우저를 띄우지 않고 실행 중인 Chrome에 연결 |
+| `--no-usage-statistics` | MCP 사용 통계 전송 비활성화 |
+| `--no-performance-crux` | 성능 트레이스 URL을 CrUX API로 보내는 기능 비활성화 |
+| `--redact-network-headers` | 도구 응답에서 일부 민감한 네트워크 헤더 가림 |
+| `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1` | MCP 서버의 자동 업데이트 확인 비활성화 |
+| `inheritEnv: false` | MCP 자식 프로세스에 불필요한 호스트 환경 변수를 상속하지 않음. SDK 기본 환경과 명시한 `env`는 유지 |
+| `lifecycle: lazy` | 필요한 시점에만 MCP 서버 시작 |
+| `requestTimeoutMs: 30000` | MCP 요청의 대기 시간을 30초로 제한 |
+
+통계 전송 비활성화나 헤더 가림이 모든 데이터의 비공개를 보장하지는 않습니다. 캡처·페이지·콘솔·네트워크 결과는 에이전트와 모델에 전달될 수 있고, URL·본문·이미지 안의 민감한 정보는 별도로 주의해야 합니다.
+
+### 기존 Chrome 연결 권한
+
+`--autoConnect`는 Chrome 144 이상이 필요합니다([Google 공식 안내](https://developer.chrome.com/docs/devtools/agents/use-cases/auto-connect)). MCP 서버 초기화 성공과 실제 Chrome 연결 성공은 별개입니다.
+
+1. 연결하려는 프로필의 Chrome에서 `chrome://inspect/#remote-debugging`을 엽니다.
+2. **Allow remote debugging for this browser instance**를 활성화합니다.
+3. Pi 설정을 적용한 뒤 에이전트가 `mcp({ connect: "chrome-devtools" })`로 서버를 연결합니다.
+4. 에이전트가 `chrome-devtools_list_pages`를 호출하면 Chrome에 나타나는 연결 요청을 사용자가 **Allow**로 승인합니다.
+5. 페이지 목록의 URL·제목으로 대상 탭을 찾고 그 `pageId`로 작업합니다. 이전 세션의 ID를 재사용하지 않습니다.
+
+연결 권한은 특정 탭 하나에만 격리되지 않으며 선택된 프로필의 다른 창과 데이터에도 접근할 수 있습니다. 필요한 작업에만 사용하고, 상시 프론트엔드 개발에는 개인 브라우징과 분리된 개발용 프로필을 권장합니다. 로그인·MFA·CAPTCHA는 사용자가 직접 처리하며, 사이트에 대한 전송·게시·삭제는 승인된 작업에서만 실행합니다.
+
+### 스크린샷 저장
+
+다음은 에이전트의 MCP 호출 예시입니다. `TARGET_PAGE_ID`를 방금 조회한 대상 페이지의 숫자 ID로 바꿉니다.
+
+```javascript
+mcp({ tool: "chrome-devtools_list_pages", args: {} })
+mcp({
+  tool: "chrome-devtools_take_screenshot",
+  args: {
+    pageId: TARGET_PAGE_ID,
+    format: "png",
+    filePath: "/tmp/retailtrend-monitoring.png"
+  }
+})
+```
+
+- `filePath`를 생략하면 이미지가 도구 응답으로 전달됩니다. 사용자가 열어 볼 파일이 필요하면 경로를 명시합니다.
+- 기본은 현재 뷰포트 캡처입니다. 스크롤 아래까지 포함하려면 `fullPage: true`를 추가합니다.
+- 현재 설정에는 별도의 `--workspace`가 없어 파일 저장은 기본 OS 임시 디렉터리로 제한됩니다. `~/Pictures`로 직접 저장하면 `Access denied ... configured workspace roots` 오류가 납니다.
+- MCP의 저장 성공을 확인한 뒤, 승인된 로컬 파일 작업으로 원하는 위치에 복사합니다. 예를 들어 다음 명령은 기존 파일을 덮어쓰지 않습니다.
+
+```bash
+mkdir -p ~/Pictures
+cp -n /tmp/retailtrend-monitoring.png ~/Pictures/retailtrend-monitoring.png
+file ~/Pictures/retailtrend-monitoring.png
+```
+
+PNG 생성뿐 아니라 에이전트가 이미지를 실제로 읽는지도 확인해야 합니다. 이미지 입력을 지원하는 모델과 이미지 전달 설정이 필요합니다. 인증된 업무 화면의 스크린샷은 이 저장소에 커밋하지 않습니다.
+
+### 오류와 검증 기록
+
+| 증상 | 확인할 사항 |
+| --- | --- |
+| `Server "chrome-devtools" not found` | 설정 파일 적용 위치와 Pi의 `/reload` 여부 |
+| `chrome-devtools-mcp` 실행 파일을 찾지 못함 | Pi가 상속한 PATH와 현재 nvm 버전의 전역 설치 여부 |
+| `Could not find DevToolsActivePort` | 대상 프로필의 Chrome 실행 여부와 위 원격 디버깅 스위치. 포트 파일을 임의로 만들지 않음 |
+| Chrome 연결 요청에서 대기 | Chrome의 사용자 승인 창을 확인. 다른 프로필에 연결하려는 것은 아닌지 확인 |
+| 스크린샷 경로 접근 거부 | 기본 `/tmp` 경로 사용. 이를 해결하려고 전체 파일시스템 접근을 허용하지 않음 |
+
+2026-09-15 Ubuntu/Wayland, Node.js `24.21.0`, Chrome `150.0.7871.114`, Chrome DevTools MCP `1.9.0`에서 다음을 확인했습니다.
+
+- MCP 초기화와 29개 도구 목록 조회 성공.
+- 사용자가 원격 디버깅과 연결 요청을 승인한 뒤 기존 로그인된 Retailtrend 모니터링 탭 조회 성공.
+- 뷰포트 스크린샷을 이미지 응답으로 확인하고, 별도 파일로 다시 캡처·저장 성공(PNG, 2494 × 1231).
+- 당시 저장 파일: `~/Pictures/retailtrend-monitoring-20260915.png`. 로컬 검증 결과물이며 저장소에는 포함하지 않음.
+- 클릭·입력, 전체 페이지 캡처, 반응형 변경, 콘솔·네트워크 진단은 아직 동작 검증하지 않음.
+
+앞서 Orca의 외부 앱 제어(`orca-ide computer ...`)에서는 `screenshot: false`였지만 Chrome DevTools MCP 캡처는 정상 동작했습니다. Orca 내장 브라우저의 `screenshot` 명령은 또 다른 경로로, 실제 캡처는 아직 검증하지 않았습니다.
+
+Orca 접근성 제어 점검 중에는 pyenv 기본 Python에서 `gi`를 찾지 못해 사용자의 승인으로 `pyenv global system`을 적용했습니다. 시스템 Python에는 `gi`·AT-SPI가 이미 설치되어 있었습니다. 이 변경은 **Chrome DevTools MCP의 필수 조건이 아니며**, 재설치 시 Python 설정을 변경할 필요는 없습니다. Linux에서 `/usr/bin/orca`는 GNOME 스크린리더일 수 있으므로 이번 환경에서는 Orca CLI로 `orca-ide`를 사용했습니다.
 
 ## 웹 검색: pi-web-access와 Tavily
 
