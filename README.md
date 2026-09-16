@@ -12,6 +12,7 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
+| [config/models.json](config/models.json) | Codex GPT-6 Astra 컨텍스트 윈도우 override | `~/.pi/agent/models.json` |
 | [config/web-search.json](config/web-search.json) | `pi-web-access` 검색·본문 추출 설정 | `~/.pi/agent/web-search.json` |
 | [mcp/mcp.json](mcp/mcp.json) | Chrome DevTools·Atlassian Rovo MCP 서버 설정 | `~/.config/mcp/mcp.json` |
 
@@ -94,6 +95,21 @@ pi list
 | `/neuralwatt:settings` | 사용량 표시, 알림 등 확장 설정 |
 
 모델 선택 화면에서 `Ctrl+S`를 누르면 선택한 모델을 시작 기본값으로 저장할 수 있습니다.
+
+## Codex GPT-6 Astra 컨텍스트 설정
+
+`config/models.json`은 `openai-codex/gpt-6-astra`의 `contextWindow`를 **1,050,000토큰**으로 지정합니다. 기존 모델의 인증·출력 한도·가격 정보는 유지하며, 추론 강도와 압축 설정은 바꾸지 않습니다.
+
+저장소 루트에서 적용합니다. 기존 `models.json`에 다른 설정이 있다면 덮어쓰지 말고 해당 모델의 override만 병합하세요.
+
+```bash
+mkdir -p ~/.pi/agent
+cp config/models.json ~/.pi/agent/models.json
+```
+
+Pi에서 `/model`을 열어 모델 목록을 새로 읽고 `openai-codex/gpt-6-astra`를 다시 선택하거나 Pi를 재시작합니다. `pi install`만으로는 이 파일이 복사되지 않습니다.
+
+이 값은 Pi의 컨텍스트 관리·자동 압축 기준이며 서버의 허용량을 늘리지는 않습니다. 기본 `reserveTokens: 16384`에서는 약 1,033,616토큰을 초과하면 자동 압축합니다. 해당 계정·엔드포인트에서 장문 요청을 허용하는지는 별도 검증이 필요하며, 컨텍스트 증가로 지연과 사용량이 늘어날 수 있습니다.
 
 ## 화면 커스텀
 
