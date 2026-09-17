@@ -1,6 +1,7 @@
 # Pi 설정
 
-Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저장소입니다.
+Pi coding agent에서 사용하는 공통 지침·설정·extension·agent 등록 정의를 관리하는 저장소입니다.
+범용 스킬과 역할 프롬프트·템플릿은 별도의 [skills 저장소](https://github.com/alexgim961101/skills)에서 관리합니다.
 
 ## 관리 파일
 
@@ -10,6 +11,8 @@ Pi coding agent에서 사용하는 공통 지침과 설정을 관리하는 저�
 | [AGENTS.md](AGENTS.md) | 이 저장소에서 작업할 때 적용되는 프로젝트 전용 지침 | 전역에 복사하지 않음 |
 | [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
+| [extensions/subagent/](extensions/subagent/) | 공식 예제 기반의 별도 agent 실행 도구 | 로컬 Pi 패키지로 등록, 전역 extension 폴더에 중복 설치하지 않음 |
+| [agents/](agents/) | 보고서 조사자·검증자의 Pi 전용 등록·도구 설정 | `scripts/install-agents.sh`로 `~/.pi/agent/agents/`에 링크 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
 | [config/models.json](config/models.json) | Codex GPT-6 Astra 컨텍스트 윈도우 override | `~/.pi/agent/models.json` |
@@ -153,6 +156,26 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 ```bash
 pi remove ~/src/pi_setting
 ```
+
+## Multi-agent: 조사자·검증자
+
+Pi 기본 도구에는 multi-agent 실행 기능이 없어 공식 `subagent` 예제 extension을
+이 패키지에 포함했습니다. `pi install ~/src/pi_setting`으로 extension이 등록됩니다.
+아래 명령으로 사용자 agent 정의도 연결합니다.
+
+```bash
+cd ~/src/pi_setting
+./scripts/install-agents.sh
+```
+
+- `report-investigator`: 지정 질문·로컬 원자료 조사
+- `report-verifier`: 원자료 선행 판단 → 초안 대조
+- 두 agent는 `read, grep, find, ls`만 사용하고 부모의 모델·추론 수준을 상속합니다.
+- `debug`·`propose` 스킬은 별도 skills 저장소에서 설치합니다.
+- 기존 수동 설치본은 중복 로딩되지 않도록 확인 후 자동 탐색 경로 밖으로 옮깁니다.
+
+현재 세션은 `/reload`하거나 새로 시작합니다. 역할 프롬프트 전달, 이전 설치 전환,
+권한 제한, 제거와 검증 범위는 [docs/subagent.md](docs/subagent.md)를 참고하세요.
 
 ## MCP 공통 설정
 

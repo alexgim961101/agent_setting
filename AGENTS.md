@@ -4,13 +4,16 @@
 
 ## 저장소 목적
 
-- 이 저장소는 Pi coding agent의 전역 지침·확장·테마를 관리하는 설정 저장소다.
+- 이 저장소는 Pi coding agent의 전역 지침·확장·테마·agent 등록 정의를 관리하는 설정 저장소다. 범용 스킬·역할 프롬프트·템플릿은 별도 `~/skills` 저장소에서 관리한다.
 - `global/AGENTS.md`는 `~/.pi/agent/AGENTS.md`로 복사되는 전역 지침의 원본이다. 편집 후 `cp global/AGENTS.md ~/.pi/agent/AGENTS.md`를 실행해야 적용된다.
 
 ## 파일별 역할
 
 - `global/AGENTS.md`: 전역 지침 원본. 기술 스택에 독립적인 내용만 유지한다.
 - `extensions/compact-ui.ts`: 상태 표시줄 확장. 수정 후 Pi 세션에서 `/reload`가 필요하다.
+- `extensions/subagent/`: 공식 subagent 예제의 고정 복사본. 출처·라이선스를 보존하고 `package.json`으로만 로드한다. 전역 extension 디렉토리에 중복 설치하지 않는다.
+- `agents/`: Pi 전용 조사자·검증자 등록 정의. `scripts/install-agents.sh`로 사용자 agent 디렉토리에 링크한다.
+- `docs/subagent.md`: agent 설치·이전 설치 전환·실행·검증 절차.
 - `themes/alex-light.json`: 밝은 터미널 배경 기준의 테마. 수정 시 자동 반영된다.
 - `config/models.json`: 모델별 컨텍스트 override. `~/.pi/agent/models.json`으로 복사하며, 기존 설정이 있으면 병합한다.
 - `config/web-search.json`: `pi-web-access`의 검색·본문 추출 설정. `~/.pi/agent/web-search.json`으로 복사한다.
@@ -22,4 +25,5 @@
 - 설치·적용 절차(`pi install ~/src/pi_setting`, `pi remove`, 전역 지침 복사 명령)를 바꾸는 변경이면 README.md도 함께 갱신한다.
 - `config/`, `mcp/` 아래 파일은 저장소가 원본이다. 수정하면 해당 적용 위치로 복사해야 반영된다.
 - API 키, `auth.json`, 세션 기록 등 비밀 정보는 이 저장소에 커밋하지 않는다. 설정 파일에는 키를 직접 쓰지 않고 `$환경변수` 참조를 사용한다.
-- 자동화 테스트는 없다. 확장·테마 변경은 `pi install ~/src/pi_setting` 후 `/settings`, `/ui`, `/reload`로 확인한다.
+- agent 설치 스크립트 변경 시 `bash tests/install-agents.sh`를 실행한다. 이 검사는 임시 디렉토리만 사용한다.
+- 확장·테마 변경은 `pi install ~/src/pi_setting` 후 `/settings`, `/ui`, `/reload`로 확인한다. subagent 실행 검증은 `docs/subagent.md`의 범위를 따른다. 설치 검사와 실제 모델 실행 검증을 구분한다.

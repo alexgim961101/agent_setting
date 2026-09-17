@@ -5,10 +5,13 @@
   "type": "module",
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
+    "@earendil-works/pi-tui": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "typebox": "*"
   },
   "pi": {
-    "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts"],
+    "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts", "./extensions/subagent/index.ts"],
     "themes": ["./themes/alex-light.json", "./themes/alex-dark.json"]
   }
 }
