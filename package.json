@@ -11,7 +11,7 @@
     "typebox": "*"
   },
   "pi": {
-    "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts", "./extensions/subagent/index.ts"],
+    "extensions": ["./extensions/compact-ui.ts", "./extensions/usage.ts", "./extensions/dangerous-command-guard.ts", "./extensions/subagent/index.ts"],
     "themes": ["./themes/alex-light.json", "./themes/alex-dark.json"]
   }
 }

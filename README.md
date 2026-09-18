@@ -11,6 +11,7 @@ Pi coding agent에서 사용하는 공통 지침·설정·extension·agent 등�
 | [AGENTS.md](AGENTS.md) | 이 저장소에서 작업할 때 적용되는 프로젝트 전용 지침 | 전역에 복사하지 않음 |
 | [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
+| [extensions/dangerous-command-guard.ts](extensions/dangerous-command-guard.ts) | 위험한 bash 명령 실행 전 사용자 확인 | 로컬 Pi 패키지로 등록 |
 | [extensions/subagent/](extensions/subagent/) | 공식 예제 기반의 별도 agent 실행 도구 | 로컬 Pi 패키지로 등록, 전역 extension 폴더에 중복 설치하지 않음 |
 | [agents/](agents/) | 보고서 조사자·검증자의 Pi 전용 등록·도구 설정 | `scripts/install-agents.sh`로 `~/.pi/agent/agents/`에 링크 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
@@ -155,6 +156,30 @@ neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 
 
 ```bash
 pi remove ~/src/pi_setting
+```
+
+## 위험 명령 실행 확인
+
+`extensions/dangerous-command-guard.ts`는 Pi의 `tool_call` hook으로 에이전트의 `bash` 실행을 확인합니다. 기존 로컬 패키지 설치 방식으로 전역 적용합니다.
+
+```bash
+pi install ~/src/pi_setting
+```
+
+현재 세션에서는 `/reload`하세요. `/settings`, `/ui`로 기존 UI가 유지되는지도 확인합니다. 전역 extension 디렉터리에 별도로 복사하지 않습니다.
+
+- 감지 대상: `sudo/doas`, `rm/rmdir/unlink/shred`, `chmod/chown/chgrp`, `mkfs/wipefs/dd`, Git push(일반 push 포함), reset/clean/restore, checkout의 `--`·force 옵션, branch/tag 삭제, stash drop/clear, `find -delete`, curl/wget → 셸 파이프.
+- 실행 전 감지 사유·작업 경로·전체 명령을 표시합니다. 기본 선택은 **실행 취소**이며 **이번 명령 실행 허용**을 선택해야 진행합니다. 복합 명령은 bash 호출 전체를 한 번 승인합니다. 승인을 기억하지 않습니다.
+- Esc·취소·UI 오류 또는 UI가 없는 print/JSON 실행에서는 차단합니다. RPC는 호스트의 선택 UI 응답이 필요합니다.
+- **가벼운 문자열 감지이지 보안 샌드박스가 아닙니다.** 인용문·주석에도 확인 창이 뜰 수 있으며, 변수·별칭·스크립트 내부·일부 셸 문법은 놓칠 수 있습니다. 일반 파일 덮어쓰기, 모든 배포/DB/클라우드 명령을 포괄하지 않습니다.
+- MCP·다른 도구·extension 내부 실행과 사용자가 직접 입력하는 `!`/`!!` 명령은 검사하지 않습니다. 하위 Pi 프로세스는 이 패키지를 로드한 경우에만 자체적으로 검사하며, UI가 없다면 감지된 명령을 차단합니다.
+
+안전한 수동 확인: 에이전트에게 `git status --short` 실행을 요청하면 확인 없이 진행하고, `rm --help` 실행을 요청하면 확인 창이 표시되어야 합니다. `rm --help`는 삭제하지 않지만 `rm` 패턴에 해당합니다. 취소와 명시적 허용을 각각 확인하세요.
+
+자동 검사는 실제 위험 명령을 실행하지 않고 감지 규칙과 hook의 승인·취소·UI 부재 처리를 검사합니다(Node.js 24).
+
+```bash
+node --test tests/dangerous-command-guard.test.ts
 ```
 
 ## Multi-agent: 조사자·검증자
