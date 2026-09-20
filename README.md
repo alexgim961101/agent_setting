@@ -168,8 +168,10 @@ pi install ~/src/pi_setting
 
 현재 세션에서는 `/reload`하세요. `/settings`, `/ui`로 기존 UI가 유지되는지도 확인합니다. 전역 extension 디렉터리에 별도로 복사하지 않습니다.
 
-- 감지 대상: `sudo/doas`, `rm/rmdir/unlink/shred`, `chmod/chown/chgrp`, `mkfs/wipefs/dd`, Git push(일반 push 포함), reset/clean/restore, checkout의 `--`·force 옵션, branch/tag 삭제, stash drop/clear, `find -delete`, curl/wget → 셸 파이프.
-- 실행 전 감지 사유·작업 경로·전체 명령을 표시합니다. 기본 선택은 **실행 취소**이며 **이번 명령 실행 허용**을 선택해야 진행합니다. 복합 명령은 bash 호출 전체를 한 번 승인합니다. 승인을 기억하지 않습니다.
+- Git 확인 대상: `push` 전체(일반·강제 push, 원격 브랜치·태그 삭제 포함), `reset --hard`, `clean`(dry-run 제외), 작업 파일을 바꾸는 `restore`, `checkout -- <경로>`, `checkout`/`switch`의 `-f`·`--force`·`--discard-changes`, `stash drop/clear`. 원격 변경과 복구하기 어려운 미커밋 작업 삭제에 집중합니다.
+- Git 확인 제외: `status/diff/log`, `add/commit`, `fetch/pull`, 일반 `merge/rebase`, 브랜치 전환, 로컬 branch/tag 삭제, 일반·`--soft`·`--mixed` reset, `restore --staged`/`-S`(worktree 옵션 없는 경우), `clean -n`/`--dry-run`, `stash push/apply/pop`. UI 확인 제외가 사용자 요청 범위 밖 작업이나 임의 커밋을 허용하는 것은 아닙니다.
+- 그 외 감지 대상은 유지: `sudo/doas`, `rm/rmdir/unlink/shred`, `chmod/chown/chgrp`, `mkfs/wipefs/dd`, `find -delete`, curl/wget → 셸 파이프.
+- 실행 전 감지 사유·작업 경로·전체 명령을 표시합니다. 기본 선택은 **실행 취소**이며 **이번 명령 실행 허용**을 선택해야 진행합니다. 복합 명령은 bash 호출 전체를 한 번 승인합니다. 예를 들어 `commit && push`는 push 때문에 전체 확인창이 뜨지만 commit 단독은 확인하지 않습니다. 승인을 기억하지 않습니다.
 - Esc·취소·UI 오류 또는 UI가 없는 print/JSON 실행에서는 차단합니다. RPC는 호스트의 선택 UI 응답이 필요합니다.
 - **가벼운 문자열 감지이지 보안 샌드박스가 아닙니다.** 인용문·주석에도 확인 창이 뜰 수 있으며, 변수·별칭·스크립트 내부·일부 셸 문법은 놓칠 수 있습니다. 일반 파일 덮어쓰기, 모든 배포/DB/클라우드 명령을 포괄하지 않습니다.
 - MCP·다른 도구·extension 내부 실행과 사용자가 직접 입력하는 `!`/`!!` 명령은 검사하지 않습니다. 하위 Pi 프로세스는 이 패키지를 로드한 경우에만 자체적으로 검사하며, UI가 없다면 감지된 명령을 차단합니다.

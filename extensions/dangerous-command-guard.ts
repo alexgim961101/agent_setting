@@ -2,16 +2,29 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 // Conservative text matching, not a shell parser or security sandbox.
 // Match paths/wrappers too; quoted examples may intentionally produce false positives.
+// Recognize the Git subcommand, not words in commit messages or `stash push`.
+// Supports common global options, including quoted -C/-c values; no alias expansion.
+const gitValue = String.raw`(?:"[^"\n]*"|'[^'\n]*'|[^\s;|&()]+)`;
+const gitPrefix = String.raw`(?:^|[\s/;|&()])git\s+(?:(?:(?:-C|-c|--git-dir|--work-tree|--namespace|--config-env)\s+${gitValue}|--[\w-]+(?:=${gitValue})?|-C[^\s;|&()]+|-c[^\s;|&()]+|-p|-P)\s+)*`;
+function gitRule(pattern: RegExp, reason: string) {
+  return { pattern: new RegExp(gitPrefix + pattern.source, "m"), reason };
+}
+
 const rules: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /(?:^|[\s/;|&()])(?:sudo|doas)(?=\s|$)/m, reason: "관리자 권한 실행" },
   { pattern: /(?:^|[\s/;|&()])(?:rm|rmdir|unlink|shred)(?=\s|$)/m, reason: "파일·디렉터리 삭제" },
   { pattern: /(?:^|[\s/;|&()])(?:chmod|chown|chgrp)(?=\s|$)/m, reason: "파일 권한·소유자 변경" },
   { pattern: /(?:^|[\s/;|&()])(?:mkfs(?:\.[\w-]+)?|wipefs|dd)(?=\s|$)/m, reason: "디스크·데이터 덮어쓰기" },
-  { pattern: /(?:^|[\s/;|&()])git\s+[^\n;|&]*\bpush\b/m, reason: "Git 원격 push" },
-  { pattern: /(?:^|[\s/;|&()])git\s+[^\n;|&]*\b(?:reset|clean|restore)\b/m, reason: "Git 작업 내용·이력 변경 또는 삭제" },
-  { pattern: /(?:^|[\s/;|&()])git\s+[^\n;|&]*\bcheckout\b[^\n;|&]*(?:\s--(?:\s|$)|\s(?:-f|--force)(?=\s|$))/m, reason: "Git 작업 내용 덮어쓰기" },
-  { pattern: /(?:^|[\s/;|&()])git\s+[^\n;|&]*\b(?:branch|tag)\b[^\n;|&]*\s(?:-[dD]|--delete)(?=\s|$)/m, reason: "Git 브랜치·태그 삭제" },
-  { pattern: /(?:^|[\s/;|&()])git\s+[^\n;|&]*\bstash\s+(?:drop|clear)(?=\s|$)/m, reason: "Git stash 삭제" },
+  gitRule(/push(?=\s|$|[;|&])/, "Git 원격 push"),
+  gitRule(/reset\s+[^\n;|&]*--hard(?=\s|$|[;|&])/, "Git 미커밋 작업 삭제 (reset --hard)"),
+  // clean can delete without -f when clean.requireForce=false; only dry runs are exempt.
+  gitRule(/clean(?=\s|$|[;|&])(?![^\n;|&]*\s(?:--dry-run|-[a-zA-Z]*n[a-zA-Z]*)(?=\s|$|[;|&]))/, "Git 미추적 파일 삭제"),
+  // Unstaging alone leaves working files intact; -SW/--staged --worktree does not.
+  gitRule(/restore(?=\s|$|[;|&])(?![^\n;|&]*\s(?:--staged|-[a-zA-Z]*S[a-zA-Z]*)(?=\s|$|[;|&]))/, "Git 작업 파일 복원·덮어쓰기"),
+  gitRule(/restore\b[^\n;|&]*\s(?:--worktree|-[a-zA-Z]*W[a-zA-Z]*)(?=\s|$|[;|&])/, "Git 작업 트리 덮어쓰기"),
+  gitRule(/checkout\b[^\n;|&]*\s--(?:\s|$)/, "Git 작업 내용 덮어쓰기"),
+  gitRule(/(?:checkout|switch)\b[^\n;|&]*\s(?:-f|--force|--discard-changes)(?=\s|$|[;|&])/, "Git 브랜치 전환 시 미커밋 작업 삭제"),
+  gitRule(/stash\s+(?:drop|clear)(?=\s|$|[;|&])/, "Git stash 삭제"),
   { pattern: /(?:^|[\s/;|&()])find\s+[^\n;|&]*\s-delete(?=\s|$)/m, reason: "find를 통한 파일 삭제" },
   { pattern: /(?:^|[\s/;|&()])(?:curl|wget)\s+[^\n]*\|\s*(?:\/[^\s]+\/)?(?:sh|bash|zsh)(?=\s|$)/m, reason: "다운로드한 스크립트 즉시 실행" },
 ];
