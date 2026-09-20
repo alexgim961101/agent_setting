@@ -318,7 +318,7 @@ Orca 접근성 제어 점검 중에는 pyenv 기본 Python에서 `gi`를 찾지 
 
 ## 웹 검색: pi-web-access와 Tavily
 
-Pi 코어에는 웹 검색 도구가 없으므로 `pi-web-access` 확장으로 검색·본문 추출·GitHub 클론·PDF 추출을 추가합니다. 검색 제공자는 Tavily를 사용합니다. Tavily는 카드 등록 없이 월 1,000 크레딧을 무료로 제공하며, 초과분은 $0.008/회입니다.
+Pi 코어에는 웹 검색 도구가 없으므로 `pi-web-access` 확장으로 검색·본문 추출·GitHub 클론·PDF 추출을 추가합니다. 검색은 공식 OpenAI·Codex의 현재 GPT 모델을 우선 사용하고, 미지원 모델이나 지정된 오류에서는 Tavily를 사용합니다. Tavily는 카드 등록 없이 월 1,000 크레딧을 무료로 제공하며, 초과분은 $0.008/회입니다.
 
 ### 설치
 
@@ -339,18 +339,21 @@ export TAVILY_API_KEY="tvly-발급받은키"
 셸을 다시 열고 Pi를 재시작합니다. 환경 변수는 `/reload`로는 반영되지 않습니다.
 
 ```bash
-echo $TAVILY_API_KEY   # 값이 보이면 정상
+test -n "$TAVILY_API_KEY" && echo "TAVILY_API_KEY 설정됨" || echo "TAVILY_API_KEY 미설정"
 ```
 
 ### 설정 내용
 
-`config/web-search.json`은 Tavily만 사용하도록 고정하고, 자동 폴백에서 다른 제공자(Exa, OpenAI 등)로 넘어가는 경로를 막습니다. 검색과 본문 추출을 분리해 페이지를 읽을 때 검색 API를 다시 호출하지 않습니다.
+`config/web-search.json`은 공식 OpenAI·Codex 엔드포인트의 현재 GPT 모델로 검색을 시도하고, 미지원 모델이나 지정된 오류에서는 Tavily로 폴백합니다. 현재 확장의 `useCurrentModel`은 Claude·Neuralwatt 등 타사 게이트웨이를 지원하지 않으므로 이 경우 Tavily를 사용합니다. Claude 자체 웹 검색 연동은 아직 포함하지 않습니다. 검색과 본문 추출을 분리해 페이지를 읽을 때 검색 API를 다시 호출하지 않습니다.
+
+최상위 `provider`/`searchProvider`는 라우팅보다 우선하므로 지정하지 않습니다. 도구 호출에서 특정 provider를 명시하면 해당 제공자를 직접 사용합니다. `fallbackOn`은 빈 배열을 허용하지 않으며 인증 오류는 폴백 대상이 아닙니다. OpenAI 검색의 인증·한도·요금은 연결 방식에 따르고, Tavily 폴백에는 Pi 실행 환경의 `TAVILY_API_KEY`가 필요합니다. 설정 적용 후 Pi를 재시작하거나 `/reload`하세요.
 
 | 설정 | 값 | 이유 |
 | --- | --- | --- |
-| `provider` | `tavily` | 검색 제공자 고정 |
-| `webSearch.allowedProviders` | `["tavily"]` | 허용 목록 밖 제공자 차단 |
-| `searchRouting.fallbackOn` | `[]` | 실패 시 임의 제공자로 전환하지 않음 |
+| `searchRouting.providers` | `["openai", "tavily"]` | 현재 모델 검색 우선, Tavily 폴백 |
+| `searchRouting.useCurrentModel` | `true` | 지원되는 공식 OpenAI·Codex의 현재 GPT 모델 사용 |
+| `searchRouting.fallbackOn` | `unsupported`, `transient`, `quota`, `network`, `invalid-response` | 지정된 오류에서 다음 제공자로 전환 |
+| `webSearch.allowedProviders` | `["openai", "tavily"]` | 허용 목록 밖 제공자 차단 |
 | `fetchRouting.providers` | `http` → `jina` → `firecrawl` | 알려진 URL 본문은 직접 읽기 |
 | `workflow` | `auto-summary` | 검토용 브라우저 창 없이 요약만 수신 |
 | `pdf.provider` | `unpdf` | PDF를 로컬에서 추출 |
@@ -363,7 +366,7 @@ echo $TAVILY_API_KEY   # 값이 보이면 정상
 
 | 도구 | 용도 |
 | --- | --- |
-| `web_search` | Tavily로 검색하고 출처가 붙은 답변을 받음 |
+| `web_search` | 현재 모델 검색 또는 Tavily로 검색하고 출처가 붙은 답변을 받음 |
 | `fetch_content` | URL 본문을 Markdown으로 읽거나 GitHub 저장소를 클론 |
 | `get_search_content` | 이전 검색·조회 결과를 캐시에서 다시 읽음 |
 | `source_check` | 주장에 대한 근거 문장을 수집 |

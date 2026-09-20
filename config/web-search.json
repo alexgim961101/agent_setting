@@ -1,9 +1,9 @@
 {
-  "provider": "tavily",
   "tavilyApiKey": "$TAVILY_API_KEY",
   "searchRouting": {
-    "providers": ["tavily"],
-    "fallbackOn": []
+    "providers": ["openai", "tavily"],
+    "useCurrentModel": true,
+    "fallbackOn": ["unsupported", "transient", "quota", "network", "invalid-response"]
   },
   "fetchRouting": {
     "providers": ["http", "jina", "firecrawl"],
@@ -15,7 +15,7 @@
   },
   "webSearch": {
     "enabled": true,
-    "allowedProviders": ["tavily"]
+    "allowedProviders": ["openai", "tavily"]
   },
   "githubClone": { "enabled": true },
   "githubPrIssue": { "enabled": true },
