@@ -9,13 +9,16 @@ Pi coding agent에서 사용하는 공통 지침·설정·extension·agent 등�
 | --- | --- | --- |
 | [global/AGENTS.md](global/AGENTS.md) | 기술 스택에 독립적인 공통 작업 지침 | `~/.pi/agent/AGENTS.md` |
 | [AGENTS.md](AGENTS.md) | 이 저장소에서 작업할 때 적용되는 프로젝트 전용 지침 | 전역에 복사하지 않음 |
-| [extensions/compact-ui.ts](extensions/compact-ui.ts) | 간결한 상태 표시줄과 전환 단축키 | 로컬 Pi 패키지로 등록 |
+| [extensions/workspace-ui.ts](extensions/workspace-ui.ts) | OMP-inspired header·working indicator와 `/ui` 전환 | 로컬 Pi 패키지로 등록 |
 | [extensions/usage.ts](extensions/usage.ts) | `/usage` 명령으로 현재 provider 사용량·잔여 한도 확인 | 로컬 Pi 패키지로 등록 |
 | [extensions/dangerous-command-guard.ts](extensions/dangerous-command-guard.ts) | 위험한 bash 명령 실행 전 사용자 확인 | 로컬 Pi 패키지로 등록 |
-| [extensions/subagent/](extensions/subagent/) | 공식 예제 기반의 별도 agent 실행 도구 | 로컬 Pi 패키지로 등록, 전역 extension 폴더에 중복 설치하지 않음 |
+| [extensions/agent-hub/](extensions/agent-hub/) | RPC 기반 read-only subagent·background worker·Agent Hub | 로컬 Pi 패키지로 등록 |
+| [extensions/subagent/](extensions/subagent/) | Pi 공식 subagent 예제의 고정 원본 | 출처 비교용, manifest에서 로드하지 않음 |
 | [agents/](agents/) | 보고서 조사자·검증자의 Pi 전용 등록·도구 설정 | `scripts/install-agents.sh`로 `~/.pi/agent/agents/`에 링크 |
 | [themes/alex-light.json](themes/alex-light.json) | 차분한 파란색 계열의 밝은 테마 | 로컬 Pi 패키지로 등록 |
 | [themes/alex-dark.json](themes/alex-dark.json) | 차분한 파란색 계열의 어두운 테마 | 로컬 Pi 패키지로 등록 |
+| [config/agent-hub.json](config/agent-hub.json) | 동시 실행·timeout·agent별 모델 역할 설정 | `~/.pi/agent/agent-hub.json` |
+| [config/lsp.json](config/lsp.json) | `pi-lsp-adapter`의 명시적 설치·warmup 설정 | `~/.pi/agent/lsp.json` |
 | [config/models.json](config/models.json) | Codex GPT-6 Astra 컨텍스트 윈도우 override | `~/.pi/agent/models.json` |
 | [config/web-search.json](config/web-search.json) | `pi-web-access` 검색·본문 추출 설정 | `~/.pi/agent/web-search.json` |
 | [mcp/mcp.json](mcp/mcp.json) | Chrome DevTools·Atlassian Rovo MCP 서버 설정 | `~/.config/mcp/mcp.json` |
@@ -24,15 +27,16 @@ Pi coding agent에서 사용하는 공통 지침·설정·extension·agent 등�
 
 ## 설치 환경
 
-2026-09-14 로컬에서 확인한 버전입니다. 아래 설치 명령은 Chrome DevTools MCP를 제외하면 버전을 고정하지 않으므로 나중에 실행하면 세부 버전이 달라질 수 있습니다. 브라우저 연결을 검증한 환경은 아래 Chrome DevTools MCP 절에 별도로 기록합니다.
+2026-09-22 로컬에서 확인한 버전입니다. 아래 설치 명령은 Chrome DevTools MCP를 제외하면 버전을 고정하지 않으므로 나중에 실행하면 세부 버전이 달라질 수 있습니다. 브라우저 연결을 검증한 환경은 아래 Chrome DevTools MCP 절에 별도로 기록합니다.
 
 | 항목 | 확인한 설정 |
 | --- | --- |
-| Node.js | `v24.12.0`, nvm 기본값 `24` |
-| Pi coding agent | `0.85.1` |
+| Node.js | `v24.21.0`, nvm 기본값 `24` |
+| Pi coding agent | `0.87.0` |
 | 뉴럴와트 확장 | `@aliou/pi-neuralwatt` `0.15.3` |
 | MCP 어댑터 | `pi-mcp-adapter` `2.34.0` |
 | 웹 검색 확장 | `pi-web-access` `0.29.0` |
+| LSP 확장 | `pi-lsp-adapter` `0.1.3` |
 
 ## Node.js와 Pi 설치
 
@@ -117,7 +121,7 @@ Pi에서 `/model`을 열어 모델 목록을 새로 읽고 `openai-codex/gpt-6-a
 
 ## 화면 커스텀
 
-이 저장소를 로컬 Pi 패키지로 등록합니다. 설치된 Pi가 필요한 라이브러리를 제공하므로 별도의 `npm install`은 필요하지 않습니다. Pi `0.85.1`에서 검증했습니다.
+이 저장소를 로컬 Pi 패키지로 등록합니다. 설치된 Pi가 필요한 라이브러리를 제공하므로 별도의 `npm install`은 필요하지 않습니다. Pi `0.87.0`에서 extension 로딩을 확인했습니다.
 
 ```bash
 pi install ~/src/pi_setting
@@ -125,20 +129,16 @@ pi install ~/src/pi_setting
 
 Pi를 다시 실행하고 `/settings`에서 테마를 선택합니다. 밝은 터미널 배경에는 `alex-light`, 어두운 터미널 배경에는 `alex-dark`가 어울립니다.
 
-상태 표시줄은 기본 2줄로 표시하고, 다른 확장이 제공하는 상태가 있으면 아래에 추가합니다. 두 번째 줄에는 세션 경과 시간과 입력·출력 토큰, 캐시 토큰, 누적 비용도 표시합니다. 캐시는 provider가 캐시 사용량을 보고하는 경우에만, 비용은 가격 정보를 제공하는 경우에만 나타납니다.
-
-```text
-~/src/project · main
-neuralwatt · Kimi K2.6 · high · 12m    ↑12.3k ↓4.5k cache 8.1k $0.123 · 컨텍스트 12%
-```
+`workspace-ui.ts`는 Pi 기본 editor/footer를 유지하고 시작 header와 working indicator만 OMP-inspired 형태로 바꿉니다. Agent 실행 상태는 Agent Hub가 editor 위 widget과 도구 카드로 표시합니다.
 
 | 조작 | 동작 |
 | --- | --- |
-| `/ui` 또는 `Ctrl+Alt+U` | 간결한 표시줄과 Pi 기본 표시줄 전환 |
-| `/settings` | `alex-light`, `light`, `dark` 등 테마 선택 |
+| `/ui` 또는 `Ctrl+Alt+U` | OMP-inspired header/indicator와 Pi 기본 UI 전환 |
+| `/agents` 또는 `Alt+A` | 현재 세션 Agent Hub overlay 열기 |
+| `/settings` | `alex-light`, `alex-dark`, 기본 테마 선택 |
 | `/reload` | 저장소에서 수정한 확장 다시 불러오기 |
 
-표시줄 전환은 현재 Pi 실행 동안 유지되며, 다시 실행하거나 `/reload`하면 간결한 표시줄로 시작합니다. 단축키가 터미널에서 전달되지 않으면 `/ui`를 사용합니다. 기존 Pi 단축키는 변경하지 않습니다.
+전환 상태는 현재 Pi 실행 동안만 유지되며 재실행·`/reload` 후 OMP-inspired UI로 시작합니다. 단축키가 터미널에서 전달되지 않으면 slash command를 사용합니다. header를 단순화해도 프로젝트 trust·승인 dialog는 그대로 유지합니다.
 
 ### 사용량 확인 (`/usage`)
 
@@ -184,25 +184,35 @@ pi install ~/src/pi_setting
 node --test tests/dangerous-command-guard.test.ts
 ```
 
-## Multi-agent: 조사자·검증자
+## LSP 코드 탐색
 
-Pi 기본 도구에는 multi-agent 실행 기능이 없어 공식 `subagent` 예제 extension을
-이 패키지에 포함했습니다. `pi install ~/src/pi_setting`으로 extension이 등록됩니다.
-아래 명령으로 사용자 agent 정의도 연결합니다.
+`pi-lsp-adapter`를 고정 버전으로 설치하고 저장소의 최소 설정을 적용합니다. 기존 `lsp.json`이 있으면 덮어쓰지 말고 병합합니다.
+
+```bash
+pi install npm:pi-lsp-adapter@0.1.3
+install -m 600 config/lsp.json ~/.pi/agent/lsp.json
+```
+
+Pi에서 `/lsp status`로 확인하고 필요한 server만 명시적으로 설치합니다. 현재 TypeScript용 `vtsls`는 `/lsp install vtsls`로 `~/.pi/agent/lsp/` 아래 설치했으며 `/lsp doctor vtsls`에서 command 해석을 확인했습니다. LSP는 definition/references/hover/diagnostics 중간 피드백이며 프로젝트 typecheck/test를 대체하지 않습니다.
+
+## Multi-agent와 Agent Hub
+
+Pi 공식 subagent 예제의 호출 계약을 기반으로 RPC worker·background·steer·개별 cancel·Hub UI를 추가했습니다. 공식 원본은 `extensions/subagent/`에 보존하지만 현재 manifest는 `extensions/agent-hub/`만 로드합니다.
 
 ```bash
 cd ~/src/pi_setting
 ./scripts/install-agents.sh
+install -m 600 config/agent-hub.json ~/.pi/agent/agent-hub.json
 ```
 
 - `report-investigator`: 지정 질문·로컬 원자료 조사
-- `report-verifier`: 원자료 선행 판단 → 초안 대조
-- 두 agent는 `read, grep, find, ls`만 사용하고 부모의 모델·추론 수준을 상속합니다.
-- `debug`·`propose` 스킬은 별도 skills 저장소에서 설치합니다.
-- 기존 수동 설치본은 중복 로딩되지 않도록 확인 후 자동 탐색 경로 밖으로 옮깁니다.
+- `report-verifier`: 원자료 선행 판단 → 새 worker에서 초안 대조
+- v1 worker는 `read, grep, find, ls`만 허용하며, 더 넓은 도구를 요청하면 실행 전에 거절합니다.
+- 기존 foreground single/parallel/chain과 `background: true`를 지원합니다.
+- background 결과는 `worker` 도구의 list/status/result/wait/steer/cancel로 관리합니다.
+- 기본 동시 실행은 2개입니다. 병렬화는 경과 시간을 줄여도 총 토큰·비용을 늘릴 수 있습니다.
 
-현재 세션은 `/reload`하거나 새로 시작합니다. 역할 프롬프트 전달, 이전 설치 전환,
-권한 제한, 제거와 검증 범위는 [docs/subagent.md](docs/subagent.md)를 참고하세요.
+현재 세션은 `/reload`하거나 새로 시작합니다. 호출 계약·권한·설정·비용·검증은 [docs/subagent.md](docs/subagent.md)와 [docs/agent-hub.md](docs/agent-hub.md)를 참고하세요.
 
 ## MCP 공통 설정
 

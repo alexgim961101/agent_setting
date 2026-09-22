@@ -1,0 +1,5 @@
+{
+  "installMode": "prompt",
+  "warmup": true,
+  "servers": {}
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "maxConcurrent": 2,
+  "maxQueued": 8,
+  "startupTimeoutMs": 30000,
+  "rpcTimeoutMs": 10000,
+  "taskTimeoutMs": 600000,
+  "cancelGraceMs": 5000,
+  "roles": {},
+  "agentRoles": {}
+}
