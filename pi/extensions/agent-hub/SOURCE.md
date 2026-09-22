@@ -1,6 +1,6 @@
 # Source and attribution
 
-This extension is a local implementation for `alex-pi-settings`.
+This extension is a local implementation for `agent_setting/pi`.
 
 Agent discovery and the compatible `subagent` tool contract were derived from the MIT-licensed Pi example:
 

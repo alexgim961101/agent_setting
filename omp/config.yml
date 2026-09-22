@@ -1,0 +1,15 @@
+modelRoles:
+  default: openai-codex/gpt-5.6-sol
+  plan: openai-codex/gpt-6-astra:medium
+symbolPreset: nerd
+composer:
+  shape: pi
+  tokenRate: false
+theme:
+  dark: dark-gruvbox
+setupVersion: 2
+memory:
+  backend: "off"
+edit:
+  mode: hashline
+hideThinkingBlock: true

@@ -1,33 +1,27 @@
 # 프로젝트 전용 지침
 
-이 파일은 `~/src/pi_setting` 저장소에서 작업할 때만 적용되는 프로젝트 지침이다. 전역 지침(`~/.pi/agent/AGENTS.md`)에는 포함하지 않는다.
+이 파일은 `~/src/agent_setting` 저장소에만 적용한다. 전역 지침을 대체하지 않는다.
 
-## 저장소 목적
+## 저장소 구조
 
-- 이 저장소는 Pi coding agent의 전역 지침·확장·테마·agent 등록 정의를 관리하는 설정 저장소다. 범용 스킬·역할 프롬프트·템플릿은 별도 `~/skills` 저장소에서 관리한다.
-- `global/AGENTS.md`는 `~/.pi/agent/AGENTS.md`로 복사되는 전역 지침의 원본이다. 편집 후 `cp global/AGENTS.md ~/.pi/agent/AGENTS.md`를 실행해야 적용된다.
+- `pi/`: Pi 전역 지침·설정·확장·테마·보고서 agent 정의. `pi/package.json`을 Pi 로컬 패키지로 등록한다.
+- `claude-code/`: Claude Code 전역 `CLAUDE.md`와 설치 안내.
+- `codex/`: Codex 전역 `AGENTS.md`와 설치 안내.
+- `omp/`: OMP 사용자 `AGENTS.md`, `config.yml`과 설치 안내.
+- `scripts/link-files.sh`: 동일한 파일은 링크로 전환하되 서로 다른 사용자 파일은 보존하는 공통 설치 유틸리티.
+- 각 하네스의 `README.md`: 설치 위치·절차 및 외부 skills 저장소 사용법. 스킬 본문은 이 저장소에 넣지 않는다.
 
-## 파일별 역할
+## 변경·적용 원칙
 
-- `global/AGENTS.md`: 전역 지침 원본. 기술 스택에 독립적인 내용만 유지한다.
-- `extensions/workspace-ui.ts`: Pi 기본 footer/editor를 유지하는 OMP-inspired header·indicator. 수정 후 `/reload`가 필요하다.
-- `extensions/agent-hub/`: 현재 로드되는 read-only RPC subagent·worker·Agent Hub 구현.
-- `extensions/subagent/`: 공식 subagent 예제의 고정 원본. 출처·라이선스를 보존하고 manifest에서 로드하지 않는다.
-- `agents/`: Pi 전용 조사자·검증자 등록 정의. `scripts/install-agents.sh`로 사용자 agent 디렉토리에 링크한다.
-- `docs/subagent.md`, `docs/agent-hub.md`: agent 설치·호출·권한·실행·검증 절차.
-- `themes/alex-light.json`: 밝은 터미널 배경 기준의 테마. 수정 시 자동 반영된다.
-- `config/models.json`: 모델별 컨텍스트 override. `~/.pi/agent/models.json`으로 복사하며, 기존 설정이 있으면 병합한다.
-- `config/web-search.json`: `pi-web-access`의 검색·본문 추출 설정. `~/.pi/agent/web-search.json`으로 복사한다.
-- `config/lsp.json`: `pi-lsp-adapter` 설정 원본. `~/.pi/agent/lsp.json`으로 복사한다.
-- `config/agent-hub.json`: Agent Hub 동시 실행·timeout·모델 역할 설정. `~/.pi/agent/agent-hub.json`으로 복사한다.
-- `mcp/mcp.json`: MCP 서버 설정. `~/.config/mcp/mcp.json`으로 복사한다.
-- `package.json`: `pi` 필드로 확장·테마를 등록하는 로컬 Pi 패키지 정의.
+- 사용자 설정(`settings.json`, 인증·토큰·세션·로그·DB 등)을 저장소로 옮기지 않는다. 새 설정을 추가하기 전 비밀 정보와 하네스 런타임의 자동 수정 여부를 확인한다.
+- 공통 지침을 하네스마다 복제해도 된다. 단, 서로 다른 하네스의 설정 파일을 서로 링크하지 않는다.
+- 기존 설치 파일과 내용이 다르면 덮어쓰지 않는다. 차이를 검토하고 수동 병합을 안내한다.
+- 설치 절차와 경로를 바꾸면 루트와 해당 하네스 `README.md`, 관련 `pi/docs/`를 갱신한다.
+- Pi 확장·테마는 `pi install ~/src/agent_setting/pi`로 저장소에서 직접 로드한다. 설정·지침·agent 정의·MCP는 `pi/scripts/install.sh`로 링크한다. Pi가 자체 관리하는 `~/.pi/agent/settings.json`은 링크하지 않는다.
+- Claude Code·Codex·OMP 설치는 각각의 `install.sh`를 사용한다. 스킬은 `~/skills` 또는 검토한 외부 원본에서 별도로 설치한다.
 
-## 작업 규칙
+## 검증
 
-- 설치·적용 절차(`pi install ~/src/pi_setting`, `pi remove`, 전역 지침 복사 명령)를 바꾸는 변경이면 README.md도 함께 갱신한다.
-- `config/`, `mcp/` 아래 파일은 저장소가 원본이다. 수정하면 해당 적용 위치로 복사해야 반영된다.
-- API 키, `auth.json`, 세션 기록 등 비밀 정보는 이 저장소에 커밋하지 않는다. 설정 파일에는 키를 직접 쓰지 않고 `$환경변수` 참조를 사용한다.
-- agent 설치 스크립트 변경 시 `bash tests/install-agents.sh`를 실행한다. 이 검사는 임시 디렉토리만 사용한다.
-- Agent Hub 변경 시 `node --test tests/agent-hub-rpc.test.ts tests/agent-hub-manager.test.ts`를 실행한다. fake child 검사와 실제 provider 실행 검증을 구분한다.
-- 확장·테마 변경은 `pi install ~/src/pi_setting` 후 `/settings`, `/ui`, `/agents`, `/reload`로 확인한다. subagent 실행 검증은 `docs/subagent.md`의 범위를 따른다.
+- 설치 스크립트 변경 시 `bash pi/tests/install.sh`와 `bash tests/install-harnesses.sh` (임시 디렉터리만 사용)를 실행한다.
+- Agent Hub 변경 시 `node --test pi/tests/agent-hub-rpc.test.ts pi/tests/agent-hub-manager.test.ts`를 실행한다. fake child와 실제 provider 검증을 구분한다.
+- Pi 확장·테마 변경 시 로컬 패키지 설치 후 Pi에서 `/settings`, `/ui`, `/agents`, `/reload`로 확인한다. 실제 실행 검증 범위는 `pi/docs/subagent.md`를 따른다.

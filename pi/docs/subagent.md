@@ -12,13 +12,12 @@
 ## 설치
 
 ```bash
-cd ~/src/pi_setting
-pi install ~/src/pi_setting
-./scripts/install-agents.sh
-install -m 600 config/agent-hub.json ~/.pi/agent/agent-hub.json
+cd ~/src/agent_setting/pi
+pi install ~/src/agent_setting/pi
+./scripts/install.sh
 ```
 
-agent 정의는 `~/.pi/agent/agents/`에 링크된다. 같은 대상 링크는 유지하고 기존 파일·다른 링크·깨진 링크는 덮어쓰지 않는다. extension은 package manifest로 저장소에서 직접 로드하므로 전역 extension 디렉터리에 복사하지 않는다.
+agent 정의는 `~/.pi/agent/agents/`에 링크된다. 옛 `pi_setting/agents/` 링크만 새 경로로 갱신하고 기존 파일·그 외 링크(깨진 링크 포함)는 덮어쓰지 않는다. extension은 package manifest로 저장소에서 직접 로드하므로 전역 extension 디렉터리에 복사하지 않는다.
 
 스킬은 별도 저장소에서 설치한다.
 
@@ -73,7 +72,7 @@ cd ~/skills
 Agent Hub만 끄려면 `pi config`에서 이 패키지의 해당 extension을 비활성화한다. 패키지 전체 제거는 UI·usage·guard·테마도 함께 제거한다.
 
 ```bash
-pi remove ~/src/pi_setting
+pi remove ~/src/agent_setting/pi
 ```
 
 코드 롤백 시 package manifest의 Agent Hub entry를 `extensions/subagent/index.ts`로 되돌린다. 같은 `subagent` 도구를 둘 다 로드하지 않는다. runtime artifact와 사용자 설정은 자동 삭제하지 않는다.
@@ -81,7 +80,7 @@ pi remove ~/src/pi_setting
 ## 검증
 
 ```bash
-bash tests/install-agents.sh
+bash tests/install.sh
 node --test tests/agent-hub-rpc.test.ts tests/agent-hub-manager.test.ts
 ```
 

@@ -5,10 +5,9 @@ Agent Hub는 별도 `pi --mode rpc --no-session` 프로세스로 읽기 전용 a
 ## 설치와 적용
 
 ```bash
-cd ~/src/pi_setting
-pi install ~/src/pi_setting
-./scripts/install-agents.sh
-install -m 600 config/agent-hub.json ~/.pi/agent/agent-hub.json
+cd ~/src/agent_setting/pi
+pi install ~/src/agent_setting/pi
+./scripts/install.sh
 ```
 
 현재 Pi에서 `/reload`하거나 새로 시작한다. 패키지에는 `subagent`, `worker` 도구와 `/agents`, `Alt+A`가 등록된다. 기존 공식 예제는 `extensions/subagent/`에 원본 보관하지만 manifest에서는 Agent Hub만 로드해 같은 이름의 도구를 중복 등록하지 않는다.
@@ -70,7 +69,7 @@ RPC child가 extension 승인 dialog를 요청하면 부모 UI로 전달한다. 
 
 ## 설정
 
-원본은 `config/agent-hub.json`, 적용 위치는 `~/.pi/agent/agent-hub.json`이다. 기존 파일이 있으면 덮어쓰지 말고 병합한다.
+원본은 `config/agent-hub.json`, 적용 위치는 `~/.pi/agent/agent-hub.json`이다. 설치 스크립트가 링크하며 기존 내용이 다르면 덮어쓰지 않고 오류로 중단하므로 먼저 병합한다.
 
 ```json
 {
@@ -119,7 +118,7 @@ foreground usage는 subagent tool result usage로 부모 세션 합계에 포함
 
 ```bash
 node --test tests/agent-hub-rpc.test.ts tests/agent-hub-manager.test.ts
-bash tests/install-agents.sh
+bash tests/install.sh
 node --test tests/dangerous-command-guard.test.ts
 ```
 
