@@ -6,4 +6,5 @@ TARGET_DIR="${OMP_AGENT_DIR:-$HOME/.omp/agent}"
 LEGACY_DIR="$(dirname "$REPO_DIR")/pi_setting"
 bash "$REPO_DIR/scripts/link-files.sh" \
   "$REPO_DIR/omp/AGENTS.md" "$TARGET_DIR/AGENTS.md" "$LEGACY_DIR/omp/AGENTS.md" \
-  "$REPO_DIR/omp/config.yml" "$TARGET_DIR/config.yml" "$LEGACY_DIR/omp/config.yml"
+  "$REPO_DIR/omp/config.yml" "$TARGET_DIR/config.yml" "$LEGACY_DIR/omp/config.yml" \
+  "$REPO_DIR/omp/extensions/company-first.ts" "$TARGET_DIR/extensions/company-first.ts" ""

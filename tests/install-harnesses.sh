@@ -4,7 +4,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 export HOME="$TMP/home" CLAUDE_CONFIG_DIR="$TMP/claude" CODEX_CONFIG_DIR="$TMP/codex" OMP_AGENT_DIR="$TMP/omp"
-mkdir -p "$HOME" "$CLAUDE_CONFIG_DIR" "$CODEX_HOME" "$OMP_AGENT_DIR"
+mkdir -p "$HOME" "$CLAUDE_CONFIG_DIR" "$CODEX_CONFIG_DIR" "$OMP_AGENT_DIR"
 
 cp "$REPO_DIR/claude-code/CLAUDE.md" "$CLAUDE_CONFIG_DIR/CLAUDE.md"
 for spec in 'claude-code CLAUDE_CONFIG_DIR CLAUDE.md' 'codex CODEX_CONFIG_DIR AGENTS.md' 'omp OMP_AGENT_DIR config.yml'; do
@@ -40,6 +40,15 @@ ln -s "$TMP/missing" "$OMP_AGENT_DIR/config.yml"
 if bash "$REPO_DIR/omp/install.sh" 2> "$TMP/error"; then exit 1; fi
 test "$(readlink "$OMP_AGENT_DIR/config.yml")" = "$TMP/missing"
 test ! -e "$OMP_AGENT_DIR/AGENTS.md"
+
+# A different account-routing extension blocks the entire OMP install batch.
+export OMP_AGENT_DIR="$TMP/custom-extension"
+mkdir -p "$OMP_AGENT_DIR/extensions"
+printf 'user extension\n' > "$OMP_AGENT_DIR/extensions/company-first.ts"
+if bash "$REPO_DIR/omp/install.sh" 2> "$TMP/error"; then exit 1; fi
+test "$(< "$OMP_AGENT_DIR/extensions/company-first.ts")" = 'user extension'
+test ! -e "$OMP_AGENT_DIR/AGENTS.md"
+test ! -e "$OMP_AGENT_DIR/config.yml"
 
 export CLAUDE_CONFIG_DIR='relative-path'
 if bash "$REPO_DIR/claude-code/install.sh" 2> "$TMP/error"; then exit 1; fi

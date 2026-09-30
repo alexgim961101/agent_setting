@@ -7,7 +7,7 @@ Claude Code, Codex, Pi, OMP의 **하네스별 설정**을 관리합니다. 이 �
 | [Claude Code](claude-code/) | 전역 `CLAUDE.md` | [claude-code/README.md](claude-code/README.md) |
 | [Codex](codex/) | 전역 `AGENTS.md` | [codex/README.md](codex/README.md) |
 | [Pi](pi/) | 지침, 확장, 테마, agent 정의, 안전하게 공유 가능한 설정 | [pi/README.md](pi/README.md) |
-| [OMP](omp/) | 사용자 `AGENTS.md`, `config.yml` | [omp/README.md](omp/README.md) |
+| [OMP](omp/) | 사용자 `AGENTS.md`, `config.yml`, 회사 계정 우선 선택 확장 | [omp/README.md](omp/README.md) |
 
 공통 지침도 하네스별 파일로 **복제**합니다. 한 하네스의 변경이 다른 하네스에 의도치 않게 적용되지 않도록 하며, 공통 변경이 필요하면 각 파일을 검토해 별도로 반영합니다. `AGENTS.md`(저장소 루트)는 이 저장소 작업에만 적용합니다.
 
@@ -36,5 +36,6 @@ Pi·Claude Code·Codex·OMP가 런타임에 쓰는 설정/인증/세션 파일�
 ```bash
 bash pi/tests/install.sh
 bash tests/install-harnesses.sh
+bash omp/tests/company-first.sh
 cd pi && node --test tests/*.test.ts
 ```
